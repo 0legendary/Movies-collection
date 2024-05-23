@@ -1,16 +1,75 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+
+const apiKey = 'c280e9e8ef5a3f512e0c5859dc76de7c';
 
 
-router.get('/', function(req, res) {
-  const items = [
-    { name: 'IPhone', price: 100000, url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTXdkBMYXWjl4swIBb-g8j-GRAxWz5Jfpx1A2GL4aqtw&s' },
-    { name: 'Samsung', price: 70000, url: 'https://images.samsung.com/is/image/samsung/p6pim/in/2401/gallery/in-galaxy-s24-sm-s921blbcins-thumb-539572328'  },
-    { name: 'Sony', price: 50000, url: 'https://sony.scene7.com/is/image/sonyglobalsolutions/1640-primary_image_1200-2?$categorypdpnav$&fmt=png-alpha' },
-    { name: 'Redmi', price: 75000, url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQR27QYKDWleeR4SPLjNWmHq-hG_pvBr0tcTZaUa6Wtjg&s'  },
-    { name: 'OnePlus', price: 90000, url: 'https://image01-in.oneplus.net/ebp/202302/08/1-m00-4e-16-cpgm7mpjxnoabtqjaah4p22vdfq137.png'  },
-  ];
-  res.render('Home', { title: 'Mobiles', items: items });
+async function getMovies(baseUrl) {
+  const fetchModule = await import('node-fetch');
+  const fetch = fetchModule.default; // Assuming the default export is 'fetch'
+  const url = `${baseUrl}?api_key=${apiKey}&language=en-US&page=1`;
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.results;
+}
+
+router.get('/', async (req, res) => {
+  try {
+    res.render('Home')
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching movies");
+  }
 });
+router.get('/upcoming-movies', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/movie/upcoming';
+  const upcomingMovies = await getMovies(baseUrl);
+  res.render('Movies', { movies: upcomingMovies, genres: 'Upcoming Movies' })
+});
+
+router.get('/now-playing-movies', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/movie/now_playing';
+  const playingMovies = await getMovies(baseUrl);
+  res.render('Movies', { movies: playingMovies, genres: 'Now Playing'})
+});
+
+
+router.get('/popular-movies', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/movie/popular';
+  const popularMovies = await getMovies(baseUrl);
+  res.render('Movies', { movies: popularMovies, genres: 'Popular Movies' })
+});
+
+
+router.get('/top-rated-movies', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/movie/top_rated';
+  const topRated = await getMovies(baseUrl);
+  res.render('Movies', { movies: topRated, genres: 'Top Rated Movies'})
+});
+
+router.get('/airing-today', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/tv/airing_today';
+  const data = await getMovies(baseUrl);
+  res.render('Movies', { movies: data, genres: 'Series Airing Today'})
+});
+router.get('/top-rated-series', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/tv/top_rated';
+  const data = await getMovies(baseUrl);
+  res.render('Movies', { movies: data, genres: 'Top Rated Series'})
+});
+
+router.get('/popular-series', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/tv/popular';
+  const data = await getMovies(baseUrl);
+  res.render('Movies', { movies: data, genres: 'Popular Series'})
+});
+
+router.get('/on-the-air', async(req, res) => {
+  const baseUrl = 'https://api.themoviedb.org/3/tv/on_the_air';
+  const data = await getMovies(baseUrl);
+  res.render('Movies', { movies: data, genres: 'Series On The Air'})
+});
+
+
 
 module.exports = router;
